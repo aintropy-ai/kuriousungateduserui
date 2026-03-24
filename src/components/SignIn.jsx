@@ -19,20 +19,25 @@ function AIntropyLogo({ size = 'lg' }) {
 }
 
 export default function SignIn({ onSignIn }) {
-  const [email, setEmail]       = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState('')
+  const [mode, setMode]           = useState('signin') // 'signin' | 'signup'
+  const [email, setEmail]         = useState('')
+  const [password, setPassword]   = useState('')
+  const [name, setName]           = useState('')
+  const [loading, setLoading]     = useState(false)
+  const [error, setError]         = useState('')
 
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!email.trim() || !password.trim()) {
-      setError('Please enter your email and password.')
+      setError('Please fill in all fields.')
+      return
+    }
+    if (mode === 'signup' && !name.trim()) {
+      setError('Please enter your name.')
       return
     }
     setError('')
     setLoading(true)
-    // Simulate auth — prototype only
     setTimeout(() => {
       setLoading(false)
       onSignIn()
@@ -47,6 +52,16 @@ export default function SignIn({ onSignIn }) {
     }, 700)
   }
 
+  const switchMode = (newMode) => {
+    setMode(newMode)
+    setError('')
+    setEmail('')
+    setPassword('')
+    setName('')
+  }
+
+  const isSignUp = mode === 'signup'
+
   return (
     <div className="min-h-screen bg-k-bg flex flex-col items-center justify-center px-6">
       {/* Logo */}
@@ -57,8 +72,33 @@ export default function SignIn({ onSignIn }) {
       {/* Card */}
       <div className="w-full max-w-sm">
         <div className="border border-k-border rounded-2xl bg-k-card p-8">
-          <h1 className="text-xl font-bold text-k-text mb-1">Sign in to Kurious</h1>
-          <p className="text-sm text-k-muted mb-8">Sign in to get started.</p>
+
+          {/* Toggle */}
+          <div className="flex items-center gap-1 bg-k-bg border border-k-border rounded-xl p-1 mb-6">
+            <button
+              onClick={() => switchMode('signin')}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                !isSignUp ? 'bg-k-card text-k-text shadow-sm' : 'text-k-muted hover:text-k-text'
+              }`}
+            >
+              Sign in
+            </button>
+            <button
+              onClick={() => switchMode('signup')}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                isSignUp ? 'bg-k-card text-k-text shadow-sm' : 'text-k-muted hover:text-k-text'
+              }`}
+            >
+              Sign up
+            </button>
+          </div>
+
+          <h1 className="text-xl font-bold text-k-text mb-1">
+            {isSignUp ? 'Create your account' : 'Welcome back'}
+          </h1>
+          <p className="text-sm text-k-muted mb-8">
+            {isSignUp ? 'Get started with Kurious for free.' : 'Sign in to get started.'}
+          </p>
 
           {/* SSO buttons */}
           <div className="space-y-3 mb-6">
@@ -93,14 +133,26 @@ export default function SignIn({ onSignIn }) {
           {/* Divider */}
           <div className="flex items-center gap-3 mb-6">
             <div className="flex-1 h-px bg-k-border" />
-            <span className="text-xs text-k-muted">or sign in with email</span>
+            <span className="text-xs text-k-muted">or {isSignUp ? 'sign up' : 'sign in'} with email</span>
             <div className="flex-1 h-px bg-k-border" />
           </div>
 
-          {/* Email / Password form */}
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div>
+                <label className="block text-xs text-k-muted mb-1.5 font-medium">Full name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="Your name"
+                  className="w-full bg-k-bg border border-k-border rounded-xl px-4 py-3 text-sm text-k-text placeholder-k-muted/50 focus:outline-none focus:border-k-cyan transition-colors"
+                />
+              </div>
+            )}
             <div>
-              <label className="block text-xs text-k-muted mb-1.5 font-medium">Work email</label>
+              <label className="block text-xs text-k-muted mb-1.5 font-medium">Email</label>
               <input
                 type="email"
                 value={email}
@@ -112,9 +164,11 @@ export default function SignIn({ onSignIn }) {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs text-k-muted font-medium">Password</label>
-                <button type="button" className="text-xs text-k-cyan hover:text-cyan-300 transition-colors">
-                  Forgot password?
-                </button>
+                {!isSignUp && (
+                  <button type="button" className="text-xs text-k-cyan hover:text-cyan-300 transition-colors">
+                    Forgot password?
+                  </button>
+                )}
               </div>
               <input
                 type="password"
@@ -137,9 +191,9 @@ export default function SignIn({ onSignIn }) {
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-k-bg/30 border-t-k-bg rounded-full animate-spin" />
-                  Signing in...
+                  {isSignUp ? 'Creating account...' : 'Signing in...'}
                 </>
-              ) : 'Sign in'}
+              ) : (isSignUp ? 'Create account' : 'Sign in')}
             </button>
           </form>
         </div>
