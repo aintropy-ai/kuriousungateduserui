@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Theme variables ─────────────────────────────── */
+:root {
+  --k-bg:     #0D0D0D;
+  --k-nav:    #111111;
+  --k-card:   #1A1A1A;
+  --k-border: #2A2A2A;
+  --k-text:   #FFFFFF;
+  --k-muted:  #A0A0A0;
+}
+
+.light {
+  --k-bg:     #FFFFFF;
+  --k-nav:    #F8F8F8;
+  --k-card:   #F0F0F0;
+  --k-border: #E0E0E0;
+  --k-text:   #0D0D0D;
+  --k-muted:  #555555;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background-color: var(--k-bg);
+  color: var(--k-text);
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--k-bg); }
+::-webkit-scrollbar-thumb { background: var(--k-border); border-radius: 2px; }
+
+/* Cyan glow on focus */
+.search-input:focus { outline: none; }
+
+/* Step pulse animation */
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.animate-spin-slow { animation: spin-slow 1.2s linear infinite; }
+
+/* Smooth collapse */
+.sources-panel {
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.3s ease;
+}
