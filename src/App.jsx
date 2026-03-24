@@ -4,8 +4,7 @@ import AnswerBlock from './components/AnswerBlock'
 import SuggestionCards from './components/SuggestionCards'
 import SignIn from './components/SignIn'
 import ChatHistorySidebar from './components/ChatHistorySidebar'
-import ProjectsSidebar from './components/ProjectsSidebar'
-import { MOCK_QA, INITIAL_SUGGESTIONS, MOCK_PROJECTS, getAnswerForQuestion } from './data/mockData'
+import { MOCK_QA, INITIAL_SUGGESTIONS, getAnswerForQuestion } from './data/mockData'
 
 // ─── Nav Logo ─────────────────────────────────────────────────────────────────
 function NavLogo({ onClick, theme }) {
@@ -16,13 +15,70 @@ function NavLogo({ onClick, theme }) {
         alt="AIntropy"
         className={`w-8 h-8 rounded-lg object-cover ${theme === 'light' ? '' : 'mix-blend-lighten'}`}
       />
-      <span className="font-bold text-[15px] tracking-tight text-k-text">Kurious</span>
+      <span className="font-bold text-[15px] tracking-tight text-k-text flex items-center gap-1.5">
+        Kurious
+        <span className="text-[10px] text-k-cyan font-normal bg-k-cyan/10 border border-k-cyan/30 rounded px-1.5 py-0.5 leading-none">β</span>
+      </span>
     </button>
   )
 }
 
+// ─── Waitlist Modal ────────────────────────────────────────────────────────────
+function WaitlistModal({ onClose }) {
+  const [email, setEmail] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (email.trim()) setSubmitted(true)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-6 animate-fade-in">
+      <div className="w-full max-w-sm bg-k-card border border-k-border rounded-2xl p-6 shadow-2xl">
+        {submitted ? (
+          <div className="text-center py-4">
+            <div className="text-3xl mb-3">🎉</div>
+            <h2 className="text-lg font-bold text-k-text mb-2">You're on the list!</h2>
+            <p className="text-sm text-k-muted mb-6">We'll reach out as soon as early access opens up.</p>
+            <button onClick={onClose} className="w-full bg-k-cyan text-k-bg font-semibold rounded-xl px-4 py-3 text-sm hover:bg-cyan-300 transition-colors">
+              Done
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-k-text">Join the Waitlist</h2>
+              <button onClick={onClose} className="text-k-muted hover:text-k-text transition-colors">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              </button>
+            </div>
+            <p className="text-sm text-k-muted mb-5">Get early access to Kurious — the AI knowledge engine built for enterprise data at scale.</p>
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@company.com"
+                className="w-full bg-k-bg border border-k-border rounded-xl px-4 py-3 text-sm text-k-text placeholder-k-muted/50 focus:outline-none focus:border-k-cyan transition-colors"
+              />
+              <button
+                type="submit"
+                disabled={!email.trim()}
+                className="w-full bg-white text-k-bg font-semibold rounded-xl px-4 py-3 text-sm hover:bg-gray-100 transition-colors disabled:opacity-50"
+              >
+                Request Early Access
+              </button>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Profile Dropdown ─────────────────────────────────────────────────────────
-function ProfileMenu({ onSignOut, theme, onThemeChange }) {
+function ProfileMenu({ onSignOut, theme, onThemeChange, showComparison, onComparisonToggle }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -48,7 +104,6 @@ function ProfileMenu({ onSignOut, theme, onThemeChange }) {
           <div className="px-4 py-3 border-b border-k-border">
             <p className="text-sm font-semibold text-k-text">Kunal Sawarkar</p>
             <p className="text-xs text-k-muted mt-0.5">kunal@aintropy.ai</p>
-            <p className="text-xs text-k-muted/60 mt-0.5">Organization's Name.INC</p>
           </div>
 
           {/* Theme toggle */}
@@ -70,6 +125,19 @@ function ProfileMenu({ onSignOut, theme, onThemeChange }) {
                 }`}
               >
                 🌙 Dark
+              </button>
+            </div>
+          </div>
+
+          {/* Comparison toggle */}
+          <div className="px-4 py-3 border-b border-k-border">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-k-muted">Show AI comparison</p>
+              <button
+                onClick={onComparisonToggle}
+                className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${showComparison ? 'bg-k-cyan' : 'bg-k-border'}`}
+              >
+                <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200 ${showComparison ? 'left-4' : 'left-0.5'}`} />
               </button>
             </div>
           </div>
@@ -157,55 +225,8 @@ function SearchBar({ value, onChange, onSubmit, mode, onModeChange, disabled }) 
   )
 }
 
-// ─── Project Header (shown in center when a project is active) ────────────────
-function ProjectHeader({ project, onManageMembers }) {
-  const [showMembers, setShowMembers] = useState(false)
-
-  return (
-    <div className="mb-8 pb-6 border-b border-k-border">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xl font-bold text-k-text">{project.name}</h2>
-        <button
-          onClick={() => setShowMembers(!showMembers)}
-          className="flex items-center gap-2 text-xs text-k-muted hover:text-k-cyan transition-colors border border-k-border rounded-lg px-3 py-1.5 hover:border-k-cyan/50"
-        >
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="5" cy="4.5" r="2" stroke="currentColor" strokeWidth="1.2"/><path d="M1 11c0-2.21 1.79-4 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><circle cx="10" cy="4.5" r="2" stroke="currentColor" strokeWidth="1.2"/><path d="M7 11c0-2.21 1.79-4 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
-          {project.memberCount} members
-        </button>
-      </div>
-      <p className="text-sm text-k-muted">{project.chatCount} chats · Last active {project.lastActive}</p>
-
-      {/* Inline members summary */}
-      {showMembers && (
-        <div className="mt-4 p-4 bg-k-card border border-k-border rounded-xl animate-fade-in">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-medium text-k-muted uppercase tracking-wider">Members</p>
-            <button
-              onClick={onManageMembers}
-              className="text-xs text-k-cyan hover:text-cyan-300 transition-colors"
-            >
-              Manage →
-            </button>
-          </div>
-          <div className="space-y-2">
-            {project.members.map(m => (
-              <div key={m.id} className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full bg-k-cyan/20 border border-k-border flex items-center justify-center flex-shrink-0">
-                  <span className="text-xs text-k-cyan font-medium">{m.name.charAt(0)}</span>
-                </div>
-                <span className="text-sm text-k-text flex-1">{m.name}</span>
-                <span className={`text-xs ${m.role === 'Admin' ? 'text-k-cyan' : m.role === 'Contributor' ? 'text-purple-400' : 'text-k-muted'}`}>{m.role}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
 // ─── Idle Screen ──────────────────────────────────────────────────────────────
-function IdleScreen({ isFirstVisit, inputValue, onInputChange, onSubmit, mode, onModeChange, onSuggestionSelect, projectName }) {
+function IdleScreen({ isFirstVisit, inputValue, onInputChange, onSubmit, mode, onModeChange, onSuggestionSelect }) {
   const isTyping = inputValue.length > 0
   const idleSuggestions = INITIAL_SUGGESTIONS.slice(0, 2)
   const typingSuggestions = MOCK_QA.filter(q => !idleSuggestions.includes(q.question)).slice(0, 3).map(q => q.question)
@@ -216,12 +237,7 @@ function IdleScreen({ isFirstVisit, inputValue, onInputChange, onSubmit, mode, o
         <div className={`transition-all duration-300 text-center mb-10 ${
           isTyping ? 'opacity-0 -translate-y-8 pointer-events-none h-0 mb-0 overflow-hidden' : 'opacity-100 translate-y-0'
         }`}>
-          {projectName ? (
-            <>
-              <h1 className="text-3xl font-bold text-k-text mb-2">Welcome back, Kunal.</h1>
-              <p className="text-k-muted text-lg">Searching within <span className="text-k-cyan">{projectName}</span> — what do you want to know?</p>
-            </>
-          ) : isFirstVisit ? (
+          {isFirstVisit ? (
             <>
               <h1 className="text-3xl font-bold text-k-text mb-2">Welcome to Kurious, Kunal.</h1>
               <p className="text-k-muted text-lg">Your AI-powered knowledge engine — what do you want to explore?</p>
@@ -233,6 +249,15 @@ function IdleScreen({ isFirstVisit, inputValue, onInputChange, onSubmit, mode, o
             </>
           )}
         </div>
+
+        {/* NJ Open Data badge */}
+        {!isTyping && (
+          <div className="flex justify-center mb-4 animate-fade-in">
+            <span className="text-xs text-k-muted bg-k-card border border-k-border rounded-full px-3 py-1.5">
+              Powered by New Jersey Open Data
+            </span>
+          </div>
+        )}
 
         <SearchBar value={inputValue} onChange={onInputChange} onSubmit={onSubmit} mode={mode} onModeChange={onModeChange} disabled={false} />
 
@@ -264,7 +289,7 @@ function IdleScreen({ isFirstVisit, inputValue, onInputChange, onSubmit, mode, o
 }
 
 // ─── Conversation Screen ──────────────────────────────────────────────────────
-function ConversationScreen({ conversations, inputValue, onInputChange, onSubmit, mode, onModeChange, isThinking, thinkingMode, onThinkingComplete, latestSuggestions, onSuggestionSelect }) {
+function ConversationScreen({ conversations, inputValue, onInputChange, onSubmit, mode, onModeChange, isThinking, thinkingMode, onThinkingComplete, latestSuggestions, onSuggestionSelect, showComparison }) {
   const bottomRef = useRef(null)
 
   useEffect(() => {
@@ -281,7 +306,13 @@ function ConversationScreen({ conversations, inputValue, onInputChange, onSubmit
       <div className="flex-1 px-6 py-8">
         <div className="max-w-2xl mx-auto space-y-8">
           {conversations.map((conv, i) => (
-            <AnswerBlock key={conv.id} conversation={conv} isLatest={i === conversations.length - 1 && !isThinking} />
+            <AnswerBlock
+              key={conv.id}
+              conversation={conv}
+              isLatest={i === conversations.length - 1 && !isThinking}
+              isFirst={i === 0}
+              showComparison={showComparison}
+            />
           ))}
           {isThinking && <ThinkingState mode={thinkingMode} onComplete={onThinkingComplete} />}
           {!isThinking && conversations.length > 0 && latestSuggestions.length > 0 && (
@@ -310,8 +341,6 @@ export default function App() {
   }, [theme])
 
   const [isSignedIn, setIsSignedIn]             = useState(false)
-  const [view, setView]                         = useState('myChats') // 'myChats' | 'projects'
-  const [activeProjectId, setActiveProjectId]   = useState(null)
   const [isFirstVisit, setIsFirstVisit]         = useState(true)
   const [hasStarted, setHasStarted]             = useState(false)
   const [inputValue, setInputValue]             = useState('')
@@ -322,19 +351,11 @@ export default function App() {
   const [pendingQuestion, setPendingQuestion]   = useState('')
   const [askedQuestions, setAskedQuestions]     = useState(new Set())
   const [latestSuggestions, setLatestSuggestions] = useState([])
-  const [membersProject, setMembersProject]     = useState(null)
-  const [demoRole, setDemoRole]                 = useState('Admin')
-
-  const activeProject = MOCK_PROJECTS.find(p => p.id === activeProjectId) || null
+  const [showComparison, setShowComparison]     = useState(true)
+  const [waitlistOpen, setWaitlistOpen]         = useState(false)
 
   const handleSignIn  = () => setIsSignedIn(true)
   const handleSignOut = () => { setIsSignedIn(false); handleReset() }
-
-  const handleViewChange = (newView) => {
-    setView(newView)
-    setActiveProjectId(null)
-    handleReset()
-  }
 
   const handleSubmit = (query) => {
     if (!query.trim() || isThinking) return
@@ -358,6 +379,10 @@ export default function App() {
       modalities: result.modalities,
       modalityText: result.modalityText,
       sources: result.sources,
+      format: result.format,
+      tableData: result.tableData,
+      bulletData: result.bulletData,
+      comparisonAnswers: result.comparisonAnswers,
     }
     setConversations(prev => [...prev, newConv])
     setIsThinking(false)
@@ -374,10 +399,7 @@ export default function App() {
     setAskedQuestions(new Set())
   }
 
-  // ── Sign-in ──
   if (!isSignedIn) return <SignIn onSignIn={handleSignIn} />
-
-  const hasSidebar = true // always show sidebar
 
   return (
     <div className="min-h-screen bg-k-bg text-k-text font-sans">
@@ -390,25 +412,15 @@ export default function App() {
           <NavLogo onClick={handleReset} theme={theme} />
           <div className="flex items-center gap-2">
             <button
-              onClick={() => handleViewChange('myChats')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                view === 'myChats' ? 'text-k-text bg-k-card' : 'text-k-muted hover:text-k-text hover:bg-k-card/50'
-              }`}
+              onClick={handleReset}
+              className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-k-text bg-k-card"
             >
               My Chats
-            </button>
-            <button
-              onClick={() => handleViewChange('projects')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                view === 'projects' ? 'text-k-text bg-k-card' : 'text-k-muted hover:text-k-text hover:bg-k-card/50'
-              }`}
-            >
-              Projects
             </button>
           </div>
         </div>
 
-        {/* Right: demo toggle + org + profile */}
+        {/* Right: demo toggle + join waitlist + profile */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-xs text-k-muted/40 hidden sm:block">(for demo only)</span>
@@ -416,51 +428,35 @@ export default function App() {
               <button onClick={() => setIsFirstVisit(true)} className={`text-xs px-2 py-0.5 rounded transition-colors ${isFirstVisit ? 'bg-k-cyan text-k-bg font-medium' : 'text-k-muted hover:text-k-text'}`}>First Visit</button>
               <button onClick={() => setIsFirstVisit(false)} className={`text-xs px-2 py-0.5 rounded transition-colors ${!isFirstVisit ? 'bg-k-cyan text-k-bg font-medium' : 'text-k-muted hover:text-k-text'}`}>Returning</button>
             </div>
-            {view === 'projects' && (
-              <div className="flex items-center gap-1 bg-k-card border border-k-border rounded-lg px-2 py-1">
-                {['Admin', 'Contributor', 'Viewer'].map(r => (
-                  <button key={r} onClick={() => setDemoRole(r)} className={`text-xs px-2 py-0.5 rounded transition-colors ${demoRole === r ? 'bg-k-cyan text-k-bg font-medium' : 'text-k-muted hover:text-k-text'}`}>{r}</button>
-                ))}
-              </div>
-            )}
           </div>
-          <span className="text-xs text-k-muted hidden sm:block">Organization's Name.INC</span>
-          <ProfileMenu onSignOut={handleSignOut} theme={theme} onThemeChange={setTheme} />
+          <button
+            onClick={() => setWaitlistOpen(true)}
+            className="flex items-center gap-1.5 text-sm font-medium text-k-bg bg-k-cyan hover:bg-cyan-300 transition-colors rounded-lg px-3 py-1.5"
+          >
+            Join Waitlist
+          </button>
+          <ProfileMenu
+            onSignOut={handleSignOut}
+            theme={theme}
+            onThemeChange={setTheme}
+            showComparison={showComparison}
+            onComparisonToggle={() => setShowComparison(prev => !prev)}
+          />
         </div>
       </nav>
 
       {/* ── Layout: sidebar + content ── */}
       <div className="pt-14 flex">
 
-        {/* Left sidebar */}
-        {view === 'myChats' && (
-          <ChatHistorySidebar
-            activeChatId={null}
-            onChatSelect={handleReset}
-            onNewChat={handleReset}
-          />
-        )}
-        {view === 'projects' && (
-          <ProjectsSidebar
-            activeProjectId={activeProjectId}
-            onProjectSelect={(id) => { setActiveProjectId(id); handleReset() }}
-            onNewProject={() => {}}
-            demoRole={demoRole}
-          />
-        )}
+        {/* Left sidebar — always chat history */}
+        <ChatHistorySidebar
+          activeChatId={null}
+          onChatSelect={handleReset}
+          onNewChat={handleReset}
+        />
 
         {/* Center content */}
         <div className="flex-1 ml-64">
-          {/* Project header */}
-          {view === 'projects' && activeProject && !hasStarted && (
-            <div className="max-w-2xl mx-auto px-6 pt-8">
-              <ProjectHeader
-                project={activeProject}
-                onManageMembers={() => setMembersProject(activeProject)}
-              />
-            </div>
-          )}
-
           {!hasStarted ? (
             <IdleScreen
               isFirstVisit={isFirstVisit}
@@ -470,7 +466,6 @@ export default function App() {
               mode={mode}
               onModeChange={setMode}
               onSuggestionSelect={handleSubmit}
-              projectName={activeProject?.name}
             />
           ) : (
             <ConversationScreen
@@ -485,10 +480,14 @@ export default function App() {
               onThinkingComplete={handleThinkingComplete}
               latestSuggestions={latestSuggestions}
               onSuggestionSelect={handleSubmit}
+              showComparison={showComparison}
             />
           )}
         </div>
       </div>
+
+      {/* Waitlist Modal */}
+      {waitlistOpen && <WaitlistModal onClose={() => setWaitlistOpen(false)} />}
     </div>
   )
 }

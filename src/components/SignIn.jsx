@@ -58,7 +58,7 @@ export default function SignIn({ onSignIn }) {
       <div className="w-full max-w-sm">
         <div className="border border-k-border rounded-2xl bg-k-card p-8">
           <h1 className="text-xl font-bold text-k-text mb-1">Sign in to Kurious</h1>
-          <p className="text-sm text-k-muted mb-8">Use your enterprise account to continue.</p>
+          <p className="text-sm text-k-muted mb-8">Sign in to get started.</p>
 
           {/* SSO buttons */}
           <div className="space-y-3 mb-6">
@@ -145,7 +145,7 @@ export default function SignIn({ onSignIn }) {
         </div>
 
         <p className="text-center text-xs text-k-muted/50 mt-6">
-          Organization's Name.INC
+          Powered by New Jersey Open Data
         </p>
       </div>
     </div>
